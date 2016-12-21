@@ -1,0 +1,61 @@
+---
+
+- name: get java version
+  shell: "java -version 2>&1"
+  register: java_version_result
+  changed_when: false
+
+- name: test java version
+  fail:
+      msg: "solr requires java version {{ java_version }} or higher"
+  when: "'{{ java_version }}' not in java_version_result.stdout"
+
+- name: RedHat - install lsof
+  yum: name=lsof state=present
+  when: ansible_os_family == 'RedHat'
+
+- name: get solr checksum
+  set_fact:
+    solr_checksum: "{{ solr_checksum_algo }}:{{ item | replace(' *' + solr_download_file,'') }}"
+  with_url: "{{ solr_checksum_url }}"
+
+- name: debug the checksum
+  debug: var=solr_checksum
+
+- name: get solr
+  get_url:
+    url: "{{ solr_url }}"
+    dest: "{{ solr_download_dir }}"
+    checksum: "{{ solr_checksum }}"
+
+- name: extract solr_install_script
+  shell: "tar xzf {{ solr_download_file }} --directory={{ solr_download_dir }} {{ solr_dir }}/bin/{{ solr_install_script }} --strip-components=2"
+  args:
+    warn: no
+
+  # TODO: parameterize to do more than just the default
+  # TODO: create systemd unit file, rather than relying on
+  # the tres basic init.d script we get from the installer
+- name: run solr_install_script
+  shell: "{{ solr_download_dir }}/{{ solr_install_script }} {{ solr_download_dir }}/{{ solr_download_file }}"
+  args:
+    creates: "{{ solr_install_dir }}/solr/bin/solr"
+  register: solr_install_result
+  become: true
+
+  # NOTE: workaround for systemd on RedHat-family OSes
+- block:
+  - name: stop solr service
+    command: service solr stop
+
+  - name: reload solr service in systemd
+    systemd:
+      name: solr
+      daemon_reload: yes
+  when: ansible_os_family == 'RedHat' and solr_install_result.changed
+
+- name: enable and start the solr service
+  service:
+    name: solr
+    state: started
+    enabled: yes

@@ -1,0 +1,11 @@
+---
+java_version:         1.8
+solr_version:         6.2.1
+solr_install_dir:     "/opt"
+solr_download_dir:    "{{ ansible_env.HOME}}"
+solr_dir:             "solr-{{ solr_version }}"
+solr_download_file:   "{{ solr_dir }}.tgz"
+solr_install_script:  "install_solr_service.sh"
+solr_url:             "https://archive.apache.org/dist/lucene/solr/{{ solr_version }}/{{ solr_download_file }}"
+solr_checksum_algo:   "sha1"
+solr_checksum_url:    "{{ solr_url }}.{{ solr_checksum_algo }}"

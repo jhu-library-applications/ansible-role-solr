@@ -29,7 +29,7 @@
     checksum: "{{ solr_checksum }}"
 
 - name: extract solr_install_script
-  shell: "tar xzf {{ solr_download_file }} --directory={{ solr_download_dir }} {{ solr_dir }}/bin/{{ solr_install_script }} --strip-components=2"
+  shell: "tar xzf {{ solr_download_dir }}/{{ solr_download_file }} --directory={{ solr_download_dir }} {{ solr_dir }}/bin/{{ solr_install_script }} --strip-components=2"
   args:
     warn: no
 
@@ -44,9 +44,12 @@
   become: true
 
   # NOTE: workaround for systemd on RedHat-family OSes
+  # NOTE: have to use command, rather than the service module
+  # (because that would address systemd)
 - block:
   - name: stop solr service
     command: service solr stop
+    warn: no
 
   - name: reload solr service in systemd
     systemd:

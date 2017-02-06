@@ -49,7 +49,8 @@
 - block:
   - name: stop solr service
     command: service solr stop
-    warn: no
+    args:
+      warn: no
 
   - name: reload solr service in systemd
     systemd:

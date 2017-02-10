@@ -1,4 +1,5 @@
 ---
+# TODO: consider becoming only where necessary
 
 - name: get java version
   shell: "java -version 2>&1"
@@ -32,15 +33,16 @@
   shell: "tar xzf {{ solr_download_dir }}/{{ solr_download_file }} --directory={{ solr_download_dir }} {{ solr_dir }}/bin/{{ solr_install_script }} --strip-components=2"
   args:
     warn: no
-    creates: "{{ solr_download_dir }}/{{ solr_install_script }}"
+    # TODOn't: prevents upgrading
+    # creates: "{{ solr_download_dir }}/{{ solr_install_script }}"
 
   # TODO: parameterize to do more than just the default
   # TODO: create systemd unit file, rather than relying on
   # the tres basic init.d script we get from the installer
 - name: run solr_install_script
-  shell: "{{ solr_download_dir }}/{{ solr_install_script }} {{ solr_download_dir }}/{{ solr_download_file }}"
+  shell: "{{ solr_download_dir }}/{{ solr_install_script }} {{ solr_download_dir }}/{{ solr_download_file }} -f"
   args:
-    creates: "{{ solr_install_dir }}/solr/bin/solr"
+    creates: "{{ solr_install_dir }}/{{ solr_dir }}/bin/solr"
   register: solr_install_result
   become: true
 

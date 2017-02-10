@@ -32,6 +32,7 @@
   shell: "tar xzf {{ solr_download_dir }}/{{ solr_download_file }} --directory={{ solr_download_dir }} {{ solr_dir }}/bin/{{ solr_install_script }} --strip-components=2"
   args:
     warn: no
+    creates: "{{ solr_download_dir }}/{{ solr_install_script }}"
 
   # TODO: parameterize to do more than just the default
   # TODO: create systemd unit file, rather than relying on
@@ -63,3 +64,10 @@
     name: solr
     state: started
     enabled: yes
+
+- name: create cores
+  command: "{{ solr_bin }}/solr create -c {{ item }} -d basic_configs"
+  args:
+    creates: "/var/solr/data/{{ item }}"
+  become_user: "{{ solr_user }}"
+  with_items: "{{ solr_cores }}"

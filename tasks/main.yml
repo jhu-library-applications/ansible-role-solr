@@ -17,8 +17,25 @@
     msg: "this installation of solr requires java version {{ solr_minimum_java_version }} or higher"
   when: "not returned_java_version | version_compare(solr_minimum_java_version, '>=')"
 
+- name: add solr user group
+  group:
+    name:     "{{ solr_group }}"
+    gid:      "{{ solr_group_gid | default(omit) }}"
+    state: present
+  become: true
+
+- name: add solr user
+  user:
+    name:     "{{ solr_user }}"
+    shell:    "/bin/bash"
+    uid:      "{{ solr_user_uid  | default(omit) }}"
+    group:    "{{ solr_group }}"
+    comment:  "{{ solr_user }} system account"
+  become: true
+
 - name: RedHat - install lsof
   yum: name=lsof state=present
+  become: true
   when: ansible_os_family == 'RedHat'
 
 - name: get solr checksum
@@ -26,12 +43,9 @@
     solr_checksum: "{{ solr_checksum_algo }}:{{ item | replace(' *' + solr_download_file,'') }}"
   with_url: "{{ solr_checksum_url }}"
 
-- name: debug the checksum
-  debug: var=solr_checksum
-
 - name: get solr
   get_url:
-    url: "{{ solr_url }}"
+    url: "{{ solr_download_url }}"
     dest: "{{ solr_download_dir }}"
     checksum: "{{ solr_checksum }}"
 
@@ -42,11 +56,23 @@
     # TODOn't: prevents upgrading
     # creates: "{{ solr_download_dir }}/{{ solr_install_script }}"
 
-  # TODO: parameterize to do more than just the default
+- name: set upgrade argument according to configuration
+  set_fact:
+    solr_upgrade_arg: ""
+  when: not solr_upgrade
+
   # TODO: create systemd unit file, rather than relying on
   # the tres basic init.d script we get from the installer
+  # sudo bash ./install_solr_service.sh solr-5.0.0.tgz -i /opt -d /var/solr -u solr -s solr -p 8983
 - name: run solr_install_script
-  shell: "{{ solr_download_dir }}/{{ solr_install_script }} {{ solr_download_dir }}/{{ solr_download_file }} -f"
+  shell: >
+    {{ solr_download_dir }}/{{ solr_install_script }} {{ solr_download_dir }}/{{ solr_download_file }}
+    -i {{ solr_install_dir }}
+    -d {{ solr_writable_dir }}
+    -u {{ solr_user }}
+    -s {{ solr_service_name }}
+    -p {{ solr_port }}
+    {{ solr_upgrade_arg }}
   args:
     creates: "{{ solr_install_dir }}/{{ solr_dir }}/bin/solr"
   register: solr_install_result
@@ -60,11 +86,13 @@
     command: service solr stop
     args:
       warn: no
+    become: true
 
   - name: reload solr service in systemd
     systemd:
       name: solr
       daemon_reload: yes
+    become: true
   when: ansible_os_family == 'RedHat' and solr_install_result.changed
 
 - name: enable and start the solr service
@@ -72,10 +100,12 @@
     name: solr
     state: started
     enabled: yes
+  become: true
 
 - name: create cores
   command: "{{ solr_bin }}/solr create -c {{ item }} -d basic_configs"
   args:
     creates: "/var/solr/data/{{ item }}"
+  become: true
   become_user: "{{ solr_user }}"
   with_items: "{{ solr_cores }}"

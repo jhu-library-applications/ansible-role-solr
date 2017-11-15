@@ -1,2 +1,3 @@
 ---
-# vars file for solr
+# NOTE: minimum java version depends upon the the solr version and will be adjusted programmatically, as needed
+solr_minimum_java_version:  1.8

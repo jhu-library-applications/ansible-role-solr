@@ -68,9 +68,9 @@
   shell: >
     {{ solr_download_dir }}/{{ solr_install_script }} {{ solr_download_dir }}/{{ solr_download_file }}
     -i {{ solr_install_dir }}
-    -d {{ solr_writable_dir }}
+    -d {{ solr_var_dir }}
     -u {{ solr_user }}
-    -s {{ solr_service_name }}
+    -s {{ solr_service }}
     -p {{ solr_port }}
     {{ solr_upgrade_arg }}
   args:
@@ -90,14 +90,14 @@
 
   - name: reload solr service in systemd
     systemd:
-      name: solr
+      name: "{{ solr_service }}"
       daemon_reload: yes
     become: true
   when: ansible_os_family == 'RedHat' and solr_install_result.changed
 
 - name: enable and start the solr service
   service:
-    name: solr
+    name: "{{ solr_service }}"
     state: started
     enabled: yes
   become: true
@@ -105,7 +105,7 @@
 - name: create cores
   command: "{{ solr_bin }}/solr create -c {{ item }} -d basic_configs"
   args:
-    creates: "/var/solr/data/{{ item }}"
+    creates: "{{ solr_home }}/{{ item }}"
   become: true
   become_user: "{{ solr_user }}"
   with_items: "{{ solr_cores }}"

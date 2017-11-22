@@ -4,8 +4,8 @@ solr_minor_version:         6
 solr_patch_version:         2
 solr_version:               "{{ solr_major_version }}.{{ solr_minor_version }}.{{ solr_patch_version }}"
 solr_install_dir:           "/opt"      # -i
-solr_writable_dir:          "/var/solr" # -d
-solr_service_name:          "solr"      # -s
+solr_var_dir:               "/var/solr" # -d
+solr_service:               "solr"      # -s
 solr_port:                  "8983"      # -p
 # NOTE: if there are upgrade steps required for existing indices, this role will not undertake them
 solr_upgrade:               true
@@ -17,7 +17,8 @@ solr_install_script:        "install_solr_service.sh"
 solr_download_url:          "https://archive.apache.org/dist/lucene/solr/{{ solr_version }}/{{ solr_download_file }}"
 solr_checksum_algo:         "sha1"
 solr_checksum_url:          "{{ solr_download_url }}.{{ solr_checksum_algo }}"
-solr_bin:                   "{{ solr_install_dir }}/solr/bin"
+solr_bin:                   "{{ solr_install_dir }}/{{ solr_service }}/bin"
+solr_home:                  "{{ solr_var_dir }}/data"
 solr_cores:                 []
 # user vars
 solr_user:                  "solr"

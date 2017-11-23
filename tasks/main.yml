@@ -109,3 +109,24 @@
   become: true
   become_user: "{{ solr_user }}"
   with_items: "{{ solr_cores }}"
+
+- name: set solr environment vars from template
+  template:
+    src:  "{{ solr_env_template }}"
+    dest: "/etc/default/{{ solr_service }}.in.sh"
+    owner: root
+    mode: 0644
+  become: true
+  when: solr_env_template != ""
+  notify: restart solr
+
+- name: set solr environment vars from vars
+  lineinfile:
+    dest: "/etc/default/{{ solr_service }}.in.sh"
+    regexp: "^{{ item.var }}"
+    line:   '{{ item.var }}="{{ item.value }}"'
+    state: present
+    backrefs: "{{ item.backrefs | default(false) }}"
+  become: true
+  with_items: "{{ solr_env_vars }}"
+  notify: restart solr

@@ -26,3 +26,7 @@ solr_group:                 "{{ solr_user }}"
 # NOTE: uid & gid are available for override, but we don't define them by default
 # solr_user_uid:
 # solr_group_gid:
+solr_env_template:          ""
+solr_env_vars:              []
+# - var:    SOLR_HEAP
+#   value:  2g

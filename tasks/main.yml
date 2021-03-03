@@ -15,7 +15,7 @@
 - name: test java version
   fail:
     msg: "this installation of solr requires java version {{ solr_minimum_java_version }} or higher"
-  when: "not returned_java_version | version_compare(solr_minimum_java_version, '>=')"
+  when: "not returned_java_version is version(solr_minimum_java_version, '>=')"
 
 - name: add solr user group
   group:

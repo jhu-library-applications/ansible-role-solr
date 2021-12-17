@@ -1,7 +1,7 @@
 ---
 - name: set
   set_fact:
-    solr_minimum_java_version: 1.7
+    solr_minimum_java_version: 1.8
   when: solr_major_version < 6
 
 - name: get java version

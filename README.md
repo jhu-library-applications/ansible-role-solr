@@ -11,9 +11,9 @@ Java - the current version of Solr (6.x) requires Java Runtime Environment (JRE)
 Role Variables
 --------------
 
-    solr_major_version:         6
-    solr_minor_version:         6
-    solr_patch_version:         2
+    solr_major_version:         8
+    solr_minor_version:         11
+    solr_patch_version:         1
     solr_version:               "{{ solr_major_version }}.{{ solr_minor_version }}.{{ solr_patch_version }}"
     solr_install_dir:           "/opt"
     solr_var_dir:               "/var/solr"
